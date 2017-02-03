@@ -14,19 +14,7 @@ class FSM {
 
     	this.currentState = config.initial;
     	this.transitionHistory = [config.initial];
-    	this.currentHistoryIndex = this.transitionHistory.length - 1;
-
-    	/* hard-core */
-    	this.transitions = {
-    		study: 'busy',
-    		get_tired: 'sleeping',
-            get_hungry: 'hungry',
-            eat: 'normal',
-            get_hungry: 'hungry',
-            get_up: 'normal',
-    	}
-    	/* конец hard-core */
-
+    	this.currentHistoryIndex = 0;
     }
 
     /**
@@ -45,7 +33,7 @@ class FSM {
     	for (let key in this.states) {
 			if (key == state) {
 				this.currentState = state;
-				this.transitionHistory.length = this.currentHistoryIndex+1;
+				this.transitionHistory.length = this.currentHistoryIndex + 1;
 
 				this.transitionHistory.push(this.currentState);
 				this.currentHistoryIndex++;
@@ -60,17 +48,16 @@ class FSM {
      * @param event
      */
     trigger(event) {
-    	// жесточайшее мошенничество, переписать
-    	for (let key in this.transitions) {
-    		if (key == event) {
+    	if (this.states[this.currentState].transitions[event]) {
+    				
+    				this.currentState = this.states[this.currentState].transitions[event];
+    				this.transitionHistory.length = this.currentHistoryIndex + 1;
     			
-    			this.currentState = this.transitions[key];
-    			this.transitionHistory.length = this.currentHistoryIndex+1;
-    			
-    			this.transitionHistory.push(this.currentState);
-    			this.currentHistoryIndex++;
-    		}
-    	}
+    				this.transitionHistory.push(this.currentState);
+    				this.currentHistoryIndex++;
+    				return this;
+			}
+		throw new Error();
     }
 
     /**
@@ -86,7 +73,27 @@ class FSM {
      * @param event
      * @returns {Array}
      */
-    getStates(event) {}
+    getStates(event) {
+    	if (!event) {
+    		let statesAssort = [];
+
+    		for (let key in this.states) {
+    			statesAssort.push(key);
+    		}
+    		return statesAssort;
+    	}
+
+    	if (event) {
+    		let statesAssort = [];
+
+    		for (let key in this.states) {
+    			if (this.states[key].transitions[event]) {
+    			statesAssort.push(key);
+    			}
+			}
+			return statesAssort;
+    	}
+    }
 
     /**
      * Goes back to previous state.
@@ -97,7 +104,7 @@ class FSM {
         if ( this.currentHistoryIndex == 0) {
         	return false;
         } else {
-    		this.currentState = this.transitionHistory[this.currentHistoryIndex -1];
+    		this.currentState = this.transitionHistory[this.currentHistoryIndex - 1];
     		this.currentHistoryIndex--;
     		return true;
     	}
@@ -109,7 +116,7 @@ class FSM {
      * @returns {Boolean}
      */
     redo() {
-    	if ( this.currentHistoryIndex == this.transitionHistory.length -1) {
+    	if ( this.currentHistoryIndex == this.transitionHistory.length - 1) {
         	return false;
         } else {
     		this.currentState = this.transitionHistory[this.currentHistoryIndex + 1];
@@ -122,7 +129,7 @@ class FSM {
      * Clears transition history
      */
     clearHistory() {
-		this.transitionHistory = this.transitionHistory.slice(this.currentHistoryIndex, this.currentHistoryIndex+1);
+		this.transitionHistory = this.transitionHistory.slice(this.currentHistoryIndex, this.currentHistoryIndex + 1);
     	this.currentHistoryIndex = 0;
 
     }
